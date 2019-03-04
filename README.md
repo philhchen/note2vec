@@ -11,6 +11,6 @@ run.py contains code to feed the training data into the SkipGram class and train
 ## Next steps
 If you plug in the result files (embeddings8.tsv and meta.tsv) into tensorflow projector, the results aren't too great and the model doesn't seem to learn any music theory. We should try two different training methods and see if they work better:
 
-1. For each chord (a,b,c,d), we feed in {(a,b,1), (a,c,1), (a,d,1), (b,a,1),...} as training data. Maybe we should try feeding in {(a, (b+c+d)/3, 1), (b, (a+c+d)/3, 1), (c, (a+b+d)/3, 1), (d, (a+b+c)/3, 1)} as training data. The intuition is to match each note with its context "chord" all together.
+1. For each chord (a,b,c,d), we feed in {(a,b,1), (a,c,1), (a,d,1), (b,a,1),...} as training data. Maybe we should try feeding in {(a, (b+c+d)/3, 1), (b, (a+c+d)/3, 1), (c, (a+b+d)/3, 1), (d, (a+b+c)/3, 1)} as training data. The intuition is to match each note with its context "chord" all together. (Btw, the third number as 1 means there should be close association and 0 means no relation)
 
 2. Do both note2vec and chord2vec simultaneously
