@@ -15,10 +15,10 @@ n_epoch = 20
 
 # File handling
 load_prev = True
-model_file = 'model{}.bin'.format(embed_size)
-data_file = 'jsb-chorales-quarter.pkl'
-embeddings_file = 'embeddings{}.tsv'.format(embed_size)
-meta_file = 'meta.tsv'
+data_file = 'data/jsb-chorales-quarter.pkl'
+model_file = 'results/model{}.bin'.format(embed_size)
+embeddings_file = 'results/embeddings{}.tsv'.format(embed_size)
+meta_file = 'results/meta.tsv'
 
 def train_skipgram(vocab, sg_loader):
 	losses = []
