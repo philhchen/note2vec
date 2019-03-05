@@ -9,7 +9,7 @@ import pickle
 
 # Hyperparameters
 embed_size = None
-batch_size = 1
+batch_size = 32
 learning_rate = 0.01
 n_epoch = 20
 average = True
