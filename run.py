@@ -9,9 +9,10 @@ import pickle
 
 # Hyperparameters
 embed_size = None
-batch_size = 32
+batch_size = 1
 learning_rate = 0.01
 n_epoch = 20
+average = True
 
 # File handling
 load_prev = True
@@ -38,12 +39,16 @@ def train_skipgram(vocab, sg_loader):
 		total_loss = 0.0
 		for i, sample_batched in enumerate(sg_loader):
 			sample_batched = sample_batched[0]
-			in_w_var = Variable(sample_batched[:,0])
-			ctx_w_var = Variable(sample_batched[:,1])
+
+			# in_w_var = Variable(sample_batched[:,0])
+			# ctx_w_var = Variable(sample_batched[:,1])
 			
+			# model.zero_grad()
+			# log_probs = model(in_w_var, ctx_w_var)
+
 			model.zero_grad()
-			log_probs = model(in_w_var, ctx_w_var)
-			loss = loss_fn(log_probs, Variable(sample_batched[:,2].float()))
+			log_probs = model(sample_batched[:,:-1], average)
+			loss = loss_fn(log_probs, Variable(sample_batched[:,-1].float()))
 
 			loss.backward()
 			optimizer.step()
@@ -72,7 +77,7 @@ def main():
 	with open(data_file, 'rb') as f:
 		data = pickle.load(f)
 	vocab = Vocab(data)
-	sg_loader = create_skipgram_dataset(chorales=data['train'], vocab=vocab, batch_size=32)
+	sg_loader = create_skipgram_dataset(chorales=data['train'], vocab=vocab, batch_size=batch_size, average=average)
 	sg_model, sg_losses = train_skipgram(vocab, sg_loader)
 
 if __name__ == '__main__':
