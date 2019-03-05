@@ -35,5 +35,5 @@ class SkipGram(nn.Module):
         for i in range(vocab_size):
             for n, j in enumerate([0, 12, 19, 24, 28, 31, 34, 36]):
                 if i + j < embed_size:
-                    mat[i, i+j] = 1/(n+1)
+                    mat[i, i+j] = 1
         return mat

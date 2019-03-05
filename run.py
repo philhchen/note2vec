@@ -57,7 +57,7 @@ def train_skipgram(vocab, sg_loader):
 
 def save_params(vocab, model):
 	torch.save(model.state_dict(), model_file)
-	embeddings = np.array(model.embeddings.weight.data) if model.simple else np.array(model.embedding_mat.data)
+	embeddings = np.array(model.embeddings.weight.data) if model.simple else np.array(model.embedding_mat.data * model.mask)
 	with open(embeddings_file, 'w') as f:
 		for i in range(len(embeddings)):
 			for j in range(len(embeddings[0])):
