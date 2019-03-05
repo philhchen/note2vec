@@ -23,6 +23,10 @@ class Vocab():
 		return len(self.vocab)
 
 	def updateVocab(self, data):
+		"""
+		Updates the class given new data
+		@param data (dim: n_datasets, n_chorales, n_chords, n_notes)
+		"""
 		for dataset in data:
 			for chorale in data[dataset]:
 				for chord in chorale:
@@ -48,25 +52,23 @@ class Vocab():
 	def getNegativeSample(self):
 		return choice(list(self.counts.keys()), p=self.probs)
 
-def create_skipgram_dataset(chorales, vocab, batch_size=32, average=True):
-	data = np.zeros([vocab.numChords * 2, vocab.largestChord + 1]) if average else np.zeros([vocab.numPairs * 2, 3])
+def create_skipgram_dataset(chorales, vocab, batch_size=32):
+	"""
+	Creates a dataset to train skipgram model
+	@param chorales - training data (dim: n_chorales, n_chords)
+	@param batch_size - number of chords per training batch
+	returns loader - DataLoader object composed of [chord, target_value]
+	"""
+	data = np.zeros([vocab.numChords * 2, vocab.largestChord + 1])
 	count = 0
 	for ch in chorales:
 		for c in ch:
-			if average:
-				data[count, -1] = 1
-				data[count + 1, -1] = 0
-				for i, n in enumerate(c):
-					data[count, i] = vocab.w2i[n]
-					data[count + 1, i] = vocab.getNegativeSample()
-				count += 2
-			else:
-				for n in c:
-					for n1 in c:
-						if n1 != n:
-							data[count, :] = (vocab.w2i[n], vocab.w2i[n1], 1)
-							data[count + 1, :] = (vocab.w2i[n], vocab.getNegativeSample(), 0)
-							count += 2
+			data[count, -1] = 1
+			data[count + 1, -1] = 0
+			for i, n in enumerate(c):
+				data[count, i] = vocab.w2i[n]
+				data[count + 1, i] = vocab.getNegativeSample()
+			count += 2
 	dataset = TensorDataset(torch.tensor(data, dtype=torch.long))
 	loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=1)
 	return loader

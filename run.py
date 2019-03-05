@@ -15,7 +15,7 @@ n_epoch = 20
 average = True
 
 # File handling
-load_prev = True
+load_prev = False
 data_file = 'data/jsb-chorales-quarter.pkl'
 model_file = 'results/model{}.bin'.format(embed_size)
 embeddings_file = 'results/embeddings{}.tsv'.format(embed_size)
@@ -39,12 +39,6 @@ def train_skipgram(vocab, sg_loader):
 		total_loss = 0.0
 		for i, sample_batched in enumerate(sg_loader):
 			sample_batched = sample_batched[0]
-
-			# in_w_var = Variable(sample_batched[:,0])
-			# ctx_w_var = Variable(sample_batched[:,1])
-			
-			# model.zero_grad()
-			# log_probs = model(in_w_var, ctx_w_var)
 
 			model.zero_grad()
 			log_probs = model(sample_batched[:,:-1], average)
@@ -77,7 +71,7 @@ def main():
 	with open(data_file, 'rb') as f:
 		data = pickle.load(f)
 	vocab = Vocab(data)
-	sg_loader = create_skipgram_dataset(chorales=data['train'], vocab=vocab, batch_size=batch_size, average=average)
+	sg_loader = create_skipgram_dataset(chorales=data['train'], vocab=vocab, batch_size=batch_size)
 	sg_model, sg_losses = train_skipgram(vocab, sg_loader)
 
 if __name__ == '__main__':
