@@ -12,18 +12,19 @@ embed_size = 8
 batch_size = 32
 learning_rate = 0.01
 n_epoch = 20
+simple = True
 
 # File handling
 load_prev = True
 data_file = 'data/jsb-chorales-quarter.pkl'
-model_file = 'results/model{}.bin'.format(embed_size)
-embeddings_file = 'results/embeddings{}.tsv'.format(embed_size)
+model_file = 'results/ind/model{}.bin'.format(embed_size)
+embeddings_file = 'results/ind/embeddings{}.tsv'.format(embed_size)
 meta_file = 'results/meta.tsv'
 
 def train_skipgram(vocab, sg_loader):
 	losses = []
 	loss_fn = nn.L1Loss()
-	model = SkipGram(len(vocab), embed_size)
+	model = SkipGram(len(vocab), embed_size, simple)
 	print(model)
 
 	if load_prev:

@@ -19,10 +19,10 @@ load_prev = False
 save = True
 simple = True
 data_file = 'data/jsb-chorales-quarter.pkl'
-model_file = 'results/model{}_1.bin'.format(embed_size)
-embeddings_file = 'results/embeddings{}_1.tsv'.format(embed_size)
+model_file = 'results/model{}_simple.bin'.format(embed_size)
+embeddings_file = 'results/embeddings{}_simple.tsv'.format(embed_size)
 meta_file = 'results/meta.tsv'
-loss_file = 'results/model{}_1.loss'.format(embed_size)
+loss_file = 'results/model{}_simple.loss'.format(embed_size)
 
 def train_skipgram(vocab, sg_loader):
 	losses = []
@@ -55,10 +55,10 @@ def train_skipgram(vocab, sg_loader):
 		losses.append(total_loss.item())
 		print('Epoch:', epoch, 'Loss:', total_loss.item())
 		if save:
-			save_params(vocab, model, losses[-1])
+			save_params(vocab, model, losses)
 	return model, losses
 
-def save_params(vocab, model, loss):
+def save_params(vocab, model, losses):
 	torch.save(model.state_dict(), model_file)
 	embeddings = np.array(model.embeddings.weight.data) if model.simple else np.array(model.embedding_mat.data * model.mask)
 	with open(embeddings_file, 'w') as f:
@@ -72,7 +72,8 @@ def save_params(vocab, model, loss):
 			f.write('{}\n'.format(vocab.num2note(vocab.i2w[i])))
 
 	with open(loss_file, 'w') as f:
-		f.write('{}\n'.format(loss))
+		for loss in losses:
+			f.write('{}\n'.format(loss))
 
 def main():
 	with open(data_file, 'rb') as f:
