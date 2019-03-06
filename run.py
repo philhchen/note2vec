@@ -8,23 +8,26 @@ import numpy as np
 import pickle
 
 # Hyperparameters
-embed_size = None
+embed_size = 8
 batch_size = 32
 learning_rate = 0.01
-n_epoch = 20
+n_epoch = 50
 average = True
 
 # File handling
 load_prev = False
+save = True
+simple = True
 data_file = 'data/jsb-chorales-quarter.pkl'
-model_file = 'results/model{}.bin'.format(embed_size)
-embeddings_file = 'results/embeddings{}.tsv'.format(embed_size)
+model_file = 'results/model{}_1.bin'.format(embed_size)
+embeddings_file = 'results/embeddings{}_1.tsv'.format(embed_size)
 meta_file = 'results/meta.tsv'
+loss_file = 'results/model{}_1.loss'.format(embed_size)
 
 def train_skipgram(vocab, sg_loader):
 	losses = []
 	loss_fn = nn.L1Loss()
-	model = SkipGram(len(vocab), embed_size)
+	model = SkipGram(len(vocab), embed_size, simple)
 	print(model)
 
 	if load_prev:
@@ -51,10 +54,11 @@ def train_skipgram(vocab, sg_loader):
 
 		losses.append(total_loss.item())
 		print('Epoch:', epoch, 'Loss:', total_loss.item())
-		save_params(vocab, model)
+		if save:
+			save_params(vocab, model, losses[-1])
 	return model, losses
 
-def save_params(vocab, model):
+def save_params(vocab, model, loss):
 	torch.save(model.state_dict(), model_file)
 	embeddings = np.array(model.embeddings.weight.data) if model.simple else np.array(model.embedding_mat.data * model.mask)
 	with open(embeddings_file, 'w') as f:
@@ -66,6 +70,9 @@ def save_params(vocab, model):
 	with open(meta_file, 'w') as f:
 		for i in range(len(vocab)):
 			f.write('{}\n'.format(vocab.num2note(vocab.i2w[i])))
+
+	with open(loss_file, 'w') as f:
+		f.write('{}\n'.format(loss))
 
 def main():
 	with open(data_file, 'rb') as f:
