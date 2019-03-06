@@ -8,17 +8,17 @@ import numpy as np
 import pickle
 
 # Hyperparameters
-embed_size = 8
+embed_size = 4
 batch_size = 32
 learning_rate = 0.01
-n_epoch = 20
+n_epoch = 50
 simple = True
 
 # File handling
 load_prev = False
 data_file = '/home/users/philhc/note2vec/data/jsb-chorales-quarter.pkl'
-model_file = 'results/ind/model{}.bin'.format(embed_size)
-embeddings_file = 'results/ind/embeddings{}.tsv'.format(embed_size)
+model_file = 'results/model{}.bin'.format(embed_size)
+embeddings_file = 'results/embeddings{}.tsv'.format(embed_size)
 meta_file = 'results/meta.tsv'
 loss_file = 'results/model{}.loss'.format(embed_size)
 
