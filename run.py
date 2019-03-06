@@ -8,16 +8,16 @@ import numpy as np
 import pickle
 
 # Hyperparameters
-embed_size = 8
+embed_size = None
 batch_size = 32
 learning_rate = 0.01
 n_epoch = 50
 average = True
+simple = False
 
 # File handling
 load_prev = False
 save = True
-simple = True
 data_file = 'data/jsb-chorales-quarter.pkl'
 model_file = 'results/model{}_simple.bin'.format(embed_size)
 embeddings_file = 'results/embeddings{}_simple.tsv'.format(embed_size)

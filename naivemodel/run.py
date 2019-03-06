@@ -15,11 +15,12 @@ n_epoch = 20
 simple = True
 
 # File handling
-load_prev = True
-data_file = 'data/jsb-chorales-quarter.pkl'
+load_prev = False
+data_file = '/home/users/philhc/note2vec/data/jsb-chorales-quarter.pkl'
 model_file = 'results/ind/model{}.bin'.format(embed_size)
 embeddings_file = 'results/ind/embeddings{}.tsv'.format(embed_size)
 meta_file = 'results/meta.tsv'
+loss_file = 'results/model{}.loss'.format(embed_size)
 
 def train_skipgram(vocab, sg_loader):
 	losses = []
@@ -28,7 +29,10 @@ def train_skipgram(vocab, sg_loader):
 	print(model)
 
 	if load_prev:
-		model.load_state_dict(torch.load(model_file))
+		try:
+			model.load_state_dict(torch.load(model_file))
+		except:
+			print('Could not load file')
 
 	optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 
@@ -50,10 +54,10 @@ def train_skipgram(vocab, sg_loader):
 
 		losses.append(total_loss.item())
 		print('Epoch:', epoch, 'Loss:', total_loss.item())
-		save_model(vocab, model)
+		save_params(vocab, model, losses)
 	return model, losses
 
-def save_params(vocab, model):
+def save_params(vocab, model, losses):
 	torch.save(model.state_dict(), model_file)
 	embeddings = np.array(model.embeddings.weight.data)
 	with open(embeddings_file, 'w') as f:
@@ -61,8 +65,12 @@ def save_params(vocab, model):
 			f.write('{}\t{}\t{}\t{}\n'.format(embeddings[i,0], embeddings[i,1], embeddings[i,2], embeddings[i,3]))
 
 	with open(meta_file, 'w') as f:
-		for i in range(len(i2w)):
-			f.write('{}\n'.format(num2note(i2w[i])))
+		for i in range(len(vocab.i2w)):
+			f.write('{}\n'.format(vocab.num2note(vocab.i2w[i])))
+
+	with open(loss_file, 'w') as f:
+		for loss in losses:
+			f.write('{}\n'.format(loss))
 
 def main():
 	with open(data_file, 'rb') as f:
