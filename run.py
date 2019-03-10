@@ -77,7 +77,9 @@ def save_params(vocab, model, losses):
 
 def main():
 	with open(data_file, 'rb') as f:
-		data = pickle.load(f)
+		u = pickle._Unpickler(f)
+		u.encoding = 'latin1'
+		data = u.load()
 	vocab = Vocab(data)
 	sg_loader = create_skipgram_dataset(chorales=data['train'], vocab=vocab, batch_size=batch_size)
 	sg_model, sg_losses = train_skipgram(vocab, sg_loader)

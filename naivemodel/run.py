@@ -16,7 +16,7 @@ simple = True
 
 # File handling
 load_prev = False
-data_file = '/home/users/philhc/note2vec/data/jsb-chorales-quarter.pkl'
+data_file = '/Users/Phil/Documents/Frosh/CS224N/note2vec/data/jsb-chorales-quarter.pkl'
 model_file = 'results/model{}.bin'.format(embed_size)
 embeddings_file = 'results/embeddings{}.tsv'.format(embed_size)
 meta_file = 'results/meta.tsv'

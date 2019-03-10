@@ -51,7 +51,7 @@ class SkipGram(nn.Module):
     def chordEmbedding(self, chords, average=True):
         """
         Forward pass of chord embedding
-        @param chords - the input chords to embed
+        @param chords - the input chords to embed (dim: numChords, numNotesPerChord)
         returns embed_chords, the embeddings of the input chords (dim: input_dim, embed_size)
         """
         if self.simple:

@@ -48,6 +48,7 @@ def create_skipgram_dataset(chorales, vocab, batch_size=32):
 				data += [(vocab.w2i[n], vocab.w2i[n1], 1) for n1 in c if n1 != n]
 				# negative sample
 				data += [(vocab.w2i[n], vocab.getNegativeSample(), 0) for _ in range(3)]
+
 	dataset = TensorDataset(torch.tensor(data, dtype=torch.long))
 	loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=1)
 	return loader
