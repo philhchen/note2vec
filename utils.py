@@ -52,12 +52,30 @@ class Vocab():
 	def getNegativeSample(self):
 		return choice(list(self.counts.keys()), p=self.probs)
 
-def create_skipgram_dataset(chorales, vocab, batch_size=32):
+	def toInputTensor(self, chords_batch, device=torch.device('cpu')):
+		"""
+		@param chords_batch (list[list[tuple]]): batch of lists of chords (notes, not indices)
+		@param device (torch.device): device to create tensor on
+		@returns chords_padded (tensor): padded chords
+		@returns list_lengths (list[int]): list of lengths of chorales (descending order)
+		"""
+		longestChorale = max([len(chorale) for chorale in chords_batch])
+		chords_padded = torch.zeros(len(chords_batch), longestChorale, self.largestChord, dtype=torch.long, device=device)
+		for i, chorale in enumerate(chords_batch):
+			for j, chord in enumerate(chorale):
+				for k, note in enumerate(chord):
+					chords_padded[i,j,k] = self.w2i[note]
+		list_lengths = [len(chorale) for chorale in chords_batch]
+		list_lengths.sort(reverse=True)
+		return (chords_padded, list_lengths)
+
+def create_skipgram_dataset(chorales, vocab, batch_size=32, device=torch.device('cpu')):
 	"""
 	Creates a dataset to train skipgram model
 	@param chorales - training data (dim: n_chorales, n_chords)
 	@param batch_size - number of chords per training batch
-	returns loader - DataLoader object composed of [chord, target_value]
+	@param device (torch.device): device to create tensor on
+	@returns loader - DataLoader object composed of [chord, target_value]
 	"""
 	data = np.zeros([vocab.numChords * 2, vocab.largestChord + 1])
 	count = 0
@@ -69,7 +87,9 @@ def create_skipgram_dataset(chorales, vocab, batch_size=32):
 				data[count, i] = vocab.w2i[n]
 				data[count + 1, i] = vocab.getNegativeSample()
 			count += 2
-	dataset = TensorDataset(torch.tensor(data, dtype=torch.long))
+	dataset = TensorDataset(torch.tensor(data, dtype=torch.long, device=device))
 	loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=1)
 	return loader
 
+def sortByLength(chords_batch):
+	chords_batch.sort(key=lambda x: len(x), reverse=True)
