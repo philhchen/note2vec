@@ -3,6 +3,7 @@ import numpy as np
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 from collections import defaultdict
+import random
 
 class Vocab():
 	def __init__(self, data=None):
@@ -65,8 +66,9 @@ class Vocab():
 			for j, chord in enumerate(chorale):
 				for k, note in enumerate(chord):
 					chords_padded[i,j,k] = self.w2i[note]
-		list_lengths = [len(chorale) for chorale in chords_batch]
-		list_lengths.sort(reverse=True)
+		list_lengths = torch.tensor([len(chorale) for chorale in chords_batch])
+		list_lengths, indices = torch.sort(list_lengths, descending=True)
+		chords_padded = chords_padded[indices]
 		return (chords_padded, list_lengths)
 
 def create_skipgram_dataset(chorales, vocab, batch_size=32, device=torch.device('cpu')):
@@ -93,3 +95,51 @@ def create_skipgram_dataset(chorales, vocab, batch_size=32, device=torch.device(
 
 def sortByLength(chords_batch):
 	chords_batch.sort(key=lambda x: len(x), reverse=True)
+
+def chordsDataset(vocab):
+	chords = []
+	note_num = [vocab.i2w[i] for i in range(len(vocab))]
+	num_chords = 262
+
+	for i in range(21, 33):
+		major = []
+		minor = []
+		curr = i
+		while(curr <= 108):
+			major.append(curr)
+			curr += 4
+			if(curr > 108):
+				break
+			major.append(curr)
+			curr += 3
+			if(curr > 108):
+				break
+			major.append(curr)
+			curr += 5
+		curr = i
+		while(curr <= 108):
+			minor.append(curr)
+			curr += 3
+			if(curr > 108):
+				break
+			minor.append(curr)
+			curr += 4
+			if(curr > 108):
+				break
+			minor.append(curr)
+			curr += 5
+
+		for j in range(len(major) - 2):
+			if(major[j] in note_num and major[j + 1] in note_num and major[j + 2] in note_num):
+				chord = (vocab.w2i[major[j]], vocab.w2i[major[j + 1]], vocab.w2i[major[j + 2]])
+				chords.append((chord, 1, vocab.noteNames[i % 12])) # 1 is Major
+		for j in range(len(minor) - 2):
+			if(minor[j] in note_num and minor[j + 1] in note_num and minor[j + 2] in note_num):
+				chord = (vocab.w2i[minor[j]], vocab.w2i[minor[j + 1]], vocab.w2i[minor[j + 2]])
+				chords.append((chord, 0, vocab.noteNames[i % 12])) # 0 is minor
+	random.shuffle(chords)
+	X_train = torch.tensor([chords[i][0] for i in range(num_chords*2 // 3)], dtype=torch.long)
+	Y_train = torch.tensor([chords[i][1] for i in range(num_chords*2 // 3)], dtype=torch.float)
+	X_test = torch.tensor([chords[i][0] for i in range(num_chords // 3, num_chords)], dtype=torch.long)
+	Y_test = torch.tensor([chords[i][1] for i in range(num_chords // 3, num_chords)], dtype=torch.float)
+	return X_train, Y_train, X_test, Y_test
