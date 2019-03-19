@@ -10,26 +10,27 @@ from chordrnn import ChordRNN, Config
 from classifier import ChordClassifier
 
 # Configuration
-trainSkipgram = False
+trainSkipgram = True
 trainRNN = False
-trainClassifier = True
+trainClassifier = False
 
 # Hyperparameters
 embed_size = None
 batch_size = 32
-learning_rate = 0.0001
+learning_rate = 0.01
 n_epoch = 100
 average = True
 simple = False
 
 # File handling
 load_emb = True
-load_rnn = True
+load_rnn = False
 load_cnn = False
-save_embeddings = False
+save_embeddings = True
 save_rnn = False
-save_cnn = True
+save_cnn = False
 data_file = 'data/jsb-chorales-quarter.pkl'
+
 rnn_bin = 'results/rnn/model{}_avg.bin'.format(embed_size)
 rnn_loss = 'results/rnn/model{}_avg.loss'.format(embed_size)
 
@@ -45,7 +46,7 @@ embeddings_loss = 'results/embeddings/model{}_avg.loss'.format(embed_size)
 def train_skipgram(vocab, sg_loader):
 	losses = []
 	loss_fn = nn.L1Loss()
-	model = SkipGram(len(vocab), file=embeddings_bin) if load_prev else SkipGram(len(vocab), embed_size, simple)
+	model = SkipGram(len(vocab), file=embeddings_bin) if load_emb else SkipGram(len(vocab), embed_size, simple)
 	print(model)
 
 	optimizer = optim.SGD(model.parameters(), lr=learning_rate)
@@ -66,6 +67,9 @@ def train_skipgram(vocab, sg_loader):
 		losses.append(total_loss.item())
 		print('Epoch:', epoch, 'Loss:', total_loss.item())
 		save_params(model, losses, vocab)
+		# Early stopping
+		if len(losses) > 2 and losses[-1] > losses[-2]:
+			break
 	return model, losses
 
 def train_chordRNN(vocab, data):
@@ -108,7 +112,7 @@ def train_classifier(vocab):
 	for epoch in range(n_epoch):
 		total_loss = 0.0
 		for i, x in enumerate(X_train):
-			_, loss, _ = model(x, Y_train[i])
+			_, loss, _ = model(x, Y_train[i], use_emb=False)
 			loss.backward()
 			optimizer.step()
 			total_loss += loss
@@ -123,9 +127,7 @@ def train_classifier(vocab):
 				acc += correct.type(torch.float)
 			acc /= len(X_test)
 			print('Test accuracy:', acc.item())
-			# Early stopping
-			# if epoch > 20 and prev_acc > acc:
-				# break
+
 			prev_acc = acc
 			save_params(model, losses)
 
@@ -142,12 +144,12 @@ def save_params(model, losses, vocab=None):
 
 		if vocab != None:
 			with open(embeddings_meta, 'w') as f:
-				for i in range(len(vocab)):
+				for i in vocab.i2w:
 					f.write('{}\n'.format(vocab.num2note(vocab.i2w[i])))
 
 		if vocab != None:
 			with open(embeddings_meta2, 'w') as f:
-				for i in range(len(vocab)):
+				for i in vocab.i2w:
 					f.write('{}\n'.format(vocab.i2w[i]))
 
 		with open(embeddings_loss, 'w') as f:

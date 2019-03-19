@@ -80,7 +80,7 @@ class SkipGram(nn.Module):
             return torch.ones([self.vocab_size, self.embed_size])
 
         mask = torch.zeros([self.vocab_size, self.embed_size], dtype=torch.float)
-        for i in range(self.vocab_size):
+        for i in range(1, self.vocab_size):
             for n, j in enumerate([0, 12, 19, 24, 28, 31, 34, 36]):
                 if i + j < self.embed_size:
                     mask[i, i+j] = 1

@@ -21,7 +21,7 @@ class Vocab():
 			self.updateVocab(data)
 
 	def __len__(self):
-		return len(self.vocab)
+		return list(self.vocab)[-1] - list(self.vocab)[1] + 2
 
 	def updateVocab(self, data):
 		"""
@@ -36,12 +36,16 @@ class Vocab():
 					self.numPairs += len(chord) * (len(chord) - 1)
 					for note in chord:
 						self.vocab.add(note)
-						if note not in self.w2i:
-							self.w2i[note] = len(self.w2i)
-							self.i2w[len(self.i2w)] = note
-						self.counts[self.w2i[note]] += 1
 
-		self.vocab_size = len(self.vocab)
+		vocablist = list(self.vocab)
+		for note in vocablist:
+			if note not in self.w2i:
+				ind = note - vocablist[1] + 1
+				self.w2i[note] = ind
+				self.i2w[ind] = note
+			self.counts[self.w2i[note]] += 1
+
+		self.vocab_size = list(self.vocab)[-1] - list(self.vocab)[1] + 2
 		self.totalCounts = sum([self.counts[k] for k in self.counts])
 		self.probs = [self.counts[k]/self.totalCounts for k in self.counts]
 

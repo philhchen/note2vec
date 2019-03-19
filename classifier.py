@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 class ChordClassifier(nn.Module):
-	def __init__(self, embeddings, n_channels=8, k=[13, 10, 7], file=None):
+	def __init__(self, embeddings, n_channels=32, k=[13, 10, 7], file=None):
 		"""
 		@param embeddings (SkipGram object)
 		"""
@@ -27,15 +27,21 @@ class ChordClassifier(nn.Module):
 			except:
 				print('Could not load file')
 
-	def forward(self, chord, ans):
+	def forward(self, chord, ans, use_emb=True):
 		"""
 		@param chord Tensor(ChordLength)
 		@param ans (Float) 1 or 0 - 1 if major, 0 if minor
+		@param use_emb (Bool): If set to True, uses chord embeddings; else baseline model
 		@returns pred: probability that the chord is major
 		@returns loss: binary cross-entropy loss
 		@returns correct: bool whether predicted value was correct
 		"""
-		chord_emb = self.embeddings.chordEmbedding(chord).view(1, 1, -1)
+		if use_emb:
+			chord_emb = self.embeddings.chordEmbedding(chord).view(1, 1, -1)
+		else:
+			chord_emb = torch.zeros(1, 1, self.embed_size)
+			for i in chord:
+				chord_emb[0,0,i] = 1
 
 		conv_out = []
 		for i in range(len(self.conv)):
