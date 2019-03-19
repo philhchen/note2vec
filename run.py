@@ -10,15 +10,15 @@ from chordrnn import ChordRNN, Config
 from classifier import ChordClassifier
 
 # Configuration
-trainSkipgram = True
-trainRNN = False
+trainSkipgram = False
+trainRNN = True
 trainClassifier = False
 
 # Hyperparameters
 embed_size = None
 batch_size = 32
 learning_rate = 0.01
-n_epoch = 200
+n_epoch = 10
 average = True
 simple = False
 use_emb = True
@@ -27,7 +27,7 @@ use_emb = True
 load_emb = True
 load_rnn = False
 load_cnn = False
-save_emb = True
+save_emb = False
 save_rnn = False
 save_cnn = False
 data_file = 'data/jsb-chorales-quarter.pkl'
@@ -96,7 +96,7 @@ def train_chordRNN(vocab, data):
 		if len(losses) > 2 and losses[-1] > losses[-2]:
 			break
 	
-	out = rnn.decodeGreedy(data[0][0:2], 1)
+	out = rnn.decodeGreedy(data[0][0:2], 3)
 	print([model.vec2chord(o, vocab) for o in out])
 
 def train_classifier(vocab):

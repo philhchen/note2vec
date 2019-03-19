@@ -18,7 +18,7 @@ class ChordRNN(nn.Module):
 		self.proj = nn.Linear(2*cfg.nHidden, embeddings.embed_size, bias=False)
 		self.loss = nn.MSELoss()
 		self.device = cfg.device
-		self.load_state_dict(torch.load(file))
+		
 		if file != None:
 			try:
 				self.load_state_dict(torch.load(file))

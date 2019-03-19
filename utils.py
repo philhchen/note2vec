@@ -70,7 +70,7 @@ class Vocab():
 		for i, chorale in enumerate(chords_batch):
 			for j, chord in enumerate(chorale):
 				for k, note in enumerate(chord):
-					chords_padded[i,j,k] = self.w2i[note]
+					chords_padded[i,j,k] = torch.tensor(self.w2i[note])
 		list_lengths = torch.tensor([len(chorale) for chorale in chords_batch])
 		list_lengths, indices = torch.sort(list_lengths, descending=True)
 		chords_padded = chords_padded[indices]
