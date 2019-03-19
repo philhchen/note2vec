@@ -18,15 +18,16 @@ trainClassifier = False
 embed_size = None
 batch_size = 32
 learning_rate = 0.01
-n_epoch = 100
+n_epoch = 200
 average = True
 simple = False
+use_emb = True
 
 # File handling
 load_emb = True
 load_rnn = False
 load_cnn = False
-save_embeddings = True
+save_emb = True
 save_rnn = False
 save_cnn = False
 data_file = 'data/jsb-chorales-quarter.pkl'
@@ -66,7 +67,7 @@ def train_skipgram(vocab, sg_loader):
 
 		losses.append(total_loss.item())
 		print('Epoch:', epoch, 'Loss:', total_loss.item())
-		save_params(model, losses, vocab)
+		save_params(emb=model, losses=losses, vocab=vocab)
 		# Early stopping
 		if len(losses) > 2 and losses[-1] > losses[-2]:
 			break
@@ -75,27 +76,27 @@ def train_skipgram(vocab, sg_loader):
 def train_chordRNN(vocab, data):
 	cfg = Config()
 	model = SkipGram(len(vocab), file=embeddings_bin) if load_emb else SkipGram(len(vocab), embed_size, simple)
-	crnn = ChordRNN(vocab, model, cfg, file=rnn_bin) if load_rnn else ChordRNN(vocab, model, cfg)
+	rnn = ChordRNN(vocab, model, cfg, file=rnn_bin) if load_rnn else ChordRNN(vocab, model, cfg)
 
 	losses = []
-	optimizer = optim.SGD(crnn.parameters(), lr=learning_rate)
+	optimizer = optim.SGD(rnn.parameters(), lr=learning_rate)
 
 	for epoch in range(n_epoch):
 		total_loss = 0.0
 		for i in range(len(data)//batch_size):
-			loss, _, _ = crnn(data[i*batch_size : (i+1)*batch_size])
+			loss, _, _ = rnn(data[i*batch_size : (i+1)*batch_size])
 			loss.backward()
 			optimizer.step()
 			total_loss += loss
 
 		print('Epoch:', epoch, 'Loss:', total_loss.item())
 		losses.append(total_loss.item())
-		save_params(crnn, losses)
+		save_params(rnn=rnn, losses=losses)
 		# Early stopping
 		if len(losses) > 2 and losses[-1] > losses[-2]:
 			break
 	
-	out = crnn.decodeGreedy(data[0][0:2], 1)
+	out = rnn.decodeGreedy(data[0][0:2], 1)
 	print([model.vec2chord(o, vocab) for o in out])
 
 def train_classifier(vocab):
@@ -112,7 +113,7 @@ def train_classifier(vocab):
 	for epoch in range(n_epoch):
 		total_loss = 0.0
 		for i, x in enumerate(X_train):
-			_, loss, _ = model(x, Y_train[i], use_emb=False)
+			_, loss, _ = model(x, Y_train[i], use_emb=use_emb)
 			loss.backward()
 			optimizer.step()
 			total_loss += loss
@@ -129,12 +130,12 @@ def train_classifier(vocab):
 			print('Test accuracy:', acc.item())
 
 			prev_acc = acc
-			save_params(model, losses)
+			save_params(cnn=model, losses=losses)
 
-def save_params(model, losses, vocab=None):
-	if save_embeddings:
-		torch.save(model.state_dict(), embeddings_bin)
-		embeddings = np.array(model.embeddings.weight.data) if model.simple else np.array(model.embedding_mat.data * model.mask)
+def save_params(emb=None, rnn=None, cnn=None, losses=None, vocab=None):
+	if save_emb and emb != None:
+		torch.save(emb.state_dict(), embeddings_bin)
+		embeddings = np.array(emb.embeddings.weight.data) if emb.simple else np.array(emb.embedding_mat.data * emb.mask)
 
 		with open(embeddings_tsv, 'w') as f:
 			for i in range(len(embeddings)):
@@ -144,31 +145,35 @@ def save_params(model, losses, vocab=None):
 
 		if vocab != None:
 			with open(embeddings_meta, 'w') as f:
-				for i in vocab.i2w:
-					f.write('{}\n'.format(vocab.num2note(vocab.i2w[i])))
+				f.write('{}\n'.format(0))
+				for i in range(vocab.vocablist[1], vocab.vocablist[-1]+1):
+					f.write('{}\n'.format(vocab.num2note(i)))
 
 		if vocab != None:
 			with open(embeddings_meta2, 'w') as f:
 				for i in vocab.i2w:
 					f.write('{}\n'.format(vocab.i2w[i]))
 
-		with open(embeddings_loss, 'w') as f:
-			for loss in losses:
-				f.write('{}\n'.format(loss))
+		if losses != None:
+			with open(embeddings_loss, 'w') as f:
+				for loss in losses:
+					f.write('{}\n'.format(loss))
 
-	if save_rnn:
-		torch.save(model.state_dict(), rnn_bin)
+	if save_rnn and rnn != None:
+		torch.save(rnn.state_dict(), rnn_bin)
 
-		with open(rnn_loss, 'w') as f:
-			for loss in losses:
-				f.write('{}\n'.format(loss))
+		if losses != None:
+			with open(rnn_loss, 'w') as f:
+				for loss in losses:
+					f.write('{}\n'.format(loss))
 
-	if save_cnn:
-		torch.save(model.state_dict(), cnn_bin)
+	if save_cnn and cnn != None:
+		torch.save(cnn.state_dict(), cnn_bin)
 
-		with open(cnn_loss, 'w') as f:
-			for loss in losses:
-				f.write('{}\n'.format(loss))
+		if losses != None:
+			with open(cnn_loss, 'w') as f:
+				for loss in losses:
+					f.write('{}\n'.format(loss))
 		
 
 def main():

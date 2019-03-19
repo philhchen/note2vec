@@ -20,6 +20,7 @@ class SkipGram(nn.Module):
         self.embeddings = nn.Embedding(vocab_size, embed_size, padding_idx=0)
         self.embedding_mat = nn.Parameter(torch.ones(vocab_size, embed_size))
         self.mask = self.createMask(simple)
+        
         if file != None:
             try:
                 self.load_state_dict(torch.load(file))

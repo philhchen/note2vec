@@ -8,6 +8,7 @@ import random
 class Vocab():
 	def __init__(self, data=None):
 		self.vocab = set([0]) # set of all notes processed
+		self.vocablist = [0] #list of all notes processed
 		self.counts = defaultdict(int) # number of counts for each note
 		self.totalCounts = 0 # total number of note processed
 		self.probs = [] # probability of each note in vocab
@@ -37,10 +38,10 @@ class Vocab():
 					for note in chord:
 						self.vocab.add(note)
 
-		vocablist = list(self.vocab)
-		for note in vocablist:
+		self.vocablist = list(self.vocab)
+		for note in self.vocablist:
 			if note not in self.w2i:
-				ind = note - vocablist[1] + 1
+				ind = note - self.vocablist[1] + 1
 				self.w2i[note] = ind
 				self.i2w[ind] = note
 			self.counts[self.w2i[note]] += 1
@@ -102,7 +103,7 @@ def sortByLength(chords_batch):
 
 def chordsDataset(vocab):
 	chords = []
-	note_num = [vocab.i2w[i] for i in range(len(vocab))]
+	note_num = [vocab.i2w[i] for i in vocab.i2w]
 	num_chords = 262
 
 	for i in range(21, 33):
